@@ -7,7 +7,9 @@ import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Positive;
 
 @Data
-public class AddBookRequest {
+public class ModifyBookRequest {
+    @Positive(message = "quantity must be positive")
+    private Long id;
     @NotNull(message = "title cannot be null")
     private String title;
     @NotNull(message = "author cannot be null")
@@ -16,8 +18,4 @@ public class AddBookRequest {
     private int publicationYear;
     @NotNull(message = "bookType cannot be null")
     private BookType type;
-    @Positive(message = "quantity must be positive")
-    private Long libraryId;
-    @Positive(message = "quantity must be positive")
-    private int quantity;
 }

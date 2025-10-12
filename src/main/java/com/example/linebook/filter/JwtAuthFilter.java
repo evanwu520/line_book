@@ -63,13 +63,16 @@ public class JwtAuthFilter extends OncePerRequestFilter {
                 SecurityContextHolder.getContext().setAuthentication(authentication);
 
             } else {
-                ApiResponse.writeReponseError(response, HttpServletResponse.SC_UNAUTHORIZED,
-                        "TOKEN_VERIFY_FAIL");
+//                ApiResponse.writeReponseError(response, HttpServletResponse.SC_UNAUTHORIZED,
+//
+                response.setStatus(HttpServletResponse.SC_FORBIDDEN);
                 return;
             }
         } else {
-            ApiResponse.writeReponseError(response, HttpServletResponse.SC_UNAUTHORIZED,
-                    "TOKEN_MISSING");
+//            ApiResponse.writeReponseError(response, HttpServletResponse.SC_UNAUTHORIZED,
+//                    "TOKEN_MISSING");
+
+            response.setStatus(HttpServletResponse.SC_FORBIDDEN);
             return;
         }
 

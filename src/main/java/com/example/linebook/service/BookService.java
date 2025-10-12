@@ -1,13 +1,15 @@
 package com.example.linebook.service;
 
 import com.example.linebook.dto.request.AddBookRequest;
-import com.example.linebook.dto.request.BookSearchResult;
+import com.example.linebook.dto.request.ModifyBookRequest;
+import com.example.linebook.dto.response.BookSearchResponse;
 import com.example.linebook.entity.*;
 import com.example.linebook.repository.BookCopyRepository;
 import com.example.linebook.repository.BookRepository;
 import com.example.linebook.repository.LibraryRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -25,6 +27,30 @@ public class BookService {
     LibraryRepository libraryRepository;
 
 
+    /**
+     * modifyBook
+     * @param modifyBookRequest
+     * @return
+     * @throws Exception
+     */
+    public Book modifyBook(ModifyBookRequest modifyBookRequest) throws Exception {
+
+        Book book = bookRepository.findById(modifyBookRequest.getId()).orElseThrow(() -> new Exception("BOOK_NOT_FOUND"));
+        book.setTitle(modifyBookRequest.getTitle());
+        book.setAuthor(modifyBookRequest.getAuthor());
+        book.setPublicationYear(modifyBookRequest.getPublicationYear());
+        book.setType(modifyBookRequest.getType());
+        book = bookRepository.save(book);
+
+        return book;
+    }
+
+    /**
+     * addBook
+     * @param addBookRequest
+     * @return
+     */
+    @Transactional
     public Book addBook(AddBookRequest addBookRequest) {
         Book book = new Book();
         book.setTitle(addBookRequest.getTitle());
@@ -46,16 +72,26 @@ public class BookService {
         return book;
     }
 
-    public List<BookSearchResult> searchBooks(String query) {
+    /**
+     * searchBooks
+     * @param title
+     * @param author
+     * @param year
+     * @return
+     */
+    public List<BookSearch> searchBooks(String title, String author, int year) {
         List<Book> books = new ArrayList<>();
-        books.addAll(bookRepository.findByTitleContaining(query));
-        books.addAll(bookRepository.findByAuthorContaining(query));
+//        books.addAll(bookRepository.findByTitleContaining(query));
+//        books.addAll(bookRepository.findByAuthorContaining(query));
+
+        books.addAll(bookRepository.findBooks(title, author, year));
 
         return books.stream().distinct().map(book -> {
             Map<String, Long> availableCopies = bookCopyRepository.countAvailableCopiesByLibrary(book, BookCopyStatus.AVAILABLE)
                     .stream()
                     .collect(Collectors.toMap(o -> (String) o[0], o -> (Long) o[1]));
-            return new BookSearchResult(book, availableCopies);
+
+            return new BookSearch(book, availableCopies);
         }).collect(Collectors.toList());
     }
 }

@@ -1,4 +1,4 @@
-package com.example.linebook.dto.reponse;
+package com.example.linebook.dto.response;
 
 import com.example.linebook.entity.Role;
 import lombok.Data;

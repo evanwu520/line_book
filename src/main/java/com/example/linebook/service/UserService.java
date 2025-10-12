@@ -8,6 +8,7 @@ import com.example.linebook.repository.RoleRepository;
 import com.example.linebook.repository.UserRepository;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.*;
 import org.springframework.stereotype.Service;
@@ -28,7 +29,15 @@ public class UserService {
     @Autowired
     RoleRepository roleRepository;
 
+    @Value("${user.authenticate.url}")
+    private String userAuthenticateUrl;
 
+    /**
+     * login
+     * @param loginRequest
+     * @return
+     * @throws Exception
+     */
     public User login(LoginRequest loginRequest) throws  Exception {
 
         Optional<User> userOptional = userRepository.findByUsername(loginRequest.getUsername());
@@ -42,7 +51,6 @@ public class UserService {
 
         return  user;
     }
-
 
     /**
      * registerNewUser
@@ -58,7 +66,7 @@ public class UserService {
         // LIBRARIAN
         if (registrationRequest.getUserType() == 2) {
             // API call for validation
-            if (!verify(true, newUser.getUsername())) {
+            if (!authenticate(true, newUser.getUsername())) {
                 throw new Exception("VERIFY_FAIL");
             }
              memberRole = roleRepository.findByName("LIBRARIAN");
@@ -72,13 +80,12 @@ public class UserService {
      * @param isTest
      * @return
      */
-    private boolean verify(boolean isTest, String userName) {
+    private boolean authenticate(boolean isTest, String userName) {
 
         if (isTest) {
             return true;
         }
 
-        String url =  "https://todo.com.tw";
         RestTemplate restTemplate = new RestTemplate();
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);
@@ -89,7 +96,7 @@ public class UserService {
         ParameterizedTypeReference<Map<String, String>> responseType = new ParameterizedTypeReference<Map<String, String>>() {};
 
         ResponseEntity<Map<String, String>> responseEntity =
-                restTemplate.exchange(url, HttpMethod.GET,  requestEntity, responseType);
+                restTemplate.exchange(userAuthenticateUrl, HttpMethod.GET,  requestEntity, responseType);
 
         Map<String, String> responseMap = responseEntity.getBody();
 

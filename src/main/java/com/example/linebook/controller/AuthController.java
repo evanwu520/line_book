@@ -1,9 +1,9 @@
 package com.example.linebook.controller;
 
-import com.example.linebook.dto.reponse.RegisterUseResponse;
+import com.example.linebook.dto.response.RegisterUseResponse;
 import com.example.linebook.util.JwtTokenUtil;
 import com.example.linebook.dto.ApiResponse;
-import com.example.linebook.dto.reponse.LoginResponse;
+import com.example.linebook.dto.response.LoginResponse;
 import com.example.linebook.dto.request.LoginRequest;
 import com.example.linebook.dto.request.UserRegistrationRequest;
 import com.example.linebook.entity.User;
@@ -27,32 +27,27 @@ public class AuthController {
     @Autowired
     UserService userService;
 
-
     @PostMapping("/register")
-    public ResponseEntity<?> registerUser(@RequestBody UserRegistrationRequest registrationRequest) {
-
-        RegisterUseResponse registerUseResponse = new RegisterUseResponse();
+    public ResponseEntity<ApiResponse<RegisterUseResponse>> registerUser(@RequestBody UserRegistrationRequest registrationRequest) {
 
         try {
+            RegisterUseResponse registerUseResponse = new RegisterUseResponse();
             User user = userService.registerNewUser(registrationRequest);
             registerUseResponse.setUserId(user.getId());
             registerUseResponse.setUsername(user.getUsername());
             registerUseResponse.setRoles(user.getRoles());
-
+            return ResponseEntity.ok(ApiResponse.success(registerUseResponse));
         } catch (Exception ex) {
             log.error(ex.getMessage());
-            return ResponseEntity.ok(ApiResponse.error("REGISTER_USER_FAIL"));
+            return ResponseEntity.ok(ApiResponse.error(ex.getMessage()));
         }
-
-        return ResponseEntity.ok(ApiResponse.success(registerUseResponse));
     }
 
     @PostMapping("/login")
     public ResponseEntity<ApiResponse<LoginResponse>> login(@RequestBody LoginRequest loginRequest) {
 
-        LoginResponse loginResponse = new LoginResponse();
-
         try {
+            LoginResponse loginResponse = new LoginResponse();
             User user = userService.login(loginRequest);
             loginResponse.setUserId(user.getId());
             loginResponse.setUsername(user.getUsername());
@@ -64,11 +59,10 @@ public class AuthController {
                     .collect(Collectors.toList());
             // generate jwt
             loginResponse.setToken(JwtTokenUtil.generateToken(user.getId(), permissionList));
+            return ResponseEntity.ok(ApiResponse.success(loginResponse));
         } catch (Exception ex) {
             log.error(ex.getMessage());
-            return ResponseEntity.ok(ApiResponse.error("LOGIN_FAIL"));
+            return ResponseEntity.ok(ApiResponse.error(ex.getMessage()));
         }
-
-        return ResponseEntity.ok(ApiResponse.success(loginResponse));
     }
 }

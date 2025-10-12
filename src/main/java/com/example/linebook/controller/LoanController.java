@@ -1,34 +1,46 @@
 package com.example.linebook.controller;
 
+import com.example.linebook.dto.ApiResponse;
 import com.example.linebook.dto.request.BorrowRequest;
 import com.example.linebook.dto.request.ReturnRequest;
+
 import com.example.linebook.service.LoanService;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
+@Slf4j
 @RestController
 @RequestMapping("/api/loans")
 public class LoanController {
 
-    private final LoanService loanService;
 
-    public LoanController(LoanService loanService) {
-        this.loanService = loanService;
-    }
+    @Autowired
+    LoanService loanService;
 
     @PostMapping("/borrow")
     @PreAuthorize("hasAuthority('BORROW_BOOKS')")
-    public ResponseEntity<?> borrowBook(@RequestBody BorrowRequest borrowRequest) {
-        return ResponseEntity.ok(loanService.borrowBook(borrowRequest));
+    public ResponseEntity<?> borrowBook(@RequestAttribute("userId") Long userId,
+                                        @RequestHeader("Authorization") String token,
+                                        @RequestBody BorrowRequest borrowRequest) {
+        try {
+
+           return ResponseEntity.ok( ApiResponse.success(loanService.borrowBook(userId, borrowRequest.getBookId())));
+
+        } catch (Exception ex) {
+            log.error(ex.getMessage());
+            return ResponseEntity.ok(ApiResponse.error("REGISTER_USER_FAIL"));
+        }
+
     }
 
     @PostMapping("/return")
     @PreAuthorize("hasAuthority('BORROW_BOOKS')")
-    public ResponseEntity<?> returnBook(@RequestBody ReturnRequest returnRequest) {
+    public ResponseEntity<?> returnBook(@RequestAttribute("userId") Long userId,
+                                        @RequestHeader("Authorization") String token,
+                                        @RequestBody ReturnRequest returnRequest) {
         return ResponseEntity.ok(loanService.returnBook(returnRequest));
     }
 }
