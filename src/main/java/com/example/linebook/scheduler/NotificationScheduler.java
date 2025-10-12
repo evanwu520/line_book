@@ -1,7 +1,10 @@
 package com.example.linebook.scheduler;
 
+import com.example.linebook.controller.AuthController;
 import com.example.linebook.entity.Loan;
 import com.example.linebook.repository.LoanRepository;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.scheduling.annotation.Scheduled;
@@ -13,9 +16,10 @@ import java.util.List;
 @Component
 public class NotificationScheduler {
 
+    private static final Logger log = LoggerFactory.getLogger(NotificationScheduler.class);
+
     @Autowired
     LoanRepository loanRepository;
-
 
 
     @Value("${tip_before_days}")
@@ -27,7 +31,7 @@ public class NotificationScheduler {
         List<Loan> upcomingDueLoans = loanRepository.findByDueDateBeforeAndReturnDateIsNull(notificationDate);
 
         for (Loan loan : upcomingDueLoans) {
-            System.out.println("Notification: The book '" + loan.getBookCopy().getBook().getTitle() + "' is due on " + loan.getDueDate());
+            log.info("Notification: The book '{}' is due on {}", loan.getBookCopy().getBook().getTitle(), loan.getDueDate());
         }
     }
 }

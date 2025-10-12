@@ -6,6 +6,8 @@ import com.example.linebook.repository.BookCopyRepository;
 import com.example.linebook.repository.BookRepository;
 import com.example.linebook.repository.LoanRepository;
 import com.example.linebook.repository.UserRepository;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.expression.ExpressionException;
@@ -17,6 +19,8 @@ import java.util.List;
 
 @Service
 public class LoanService {
+
+    private static final Logger log = LoggerFactory.getLogger(LoanService.class);
 
     @Autowired
     LoanRepository loanRepository;

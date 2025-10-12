@@ -7,6 +7,8 @@ import com.example.linebook.entity.User;
 import com.example.linebook.repository.RoleRepository;
 import com.example.linebook.repository.UserRepository;
 import lombok.extern.slf4j.Slf4j;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.ParameterizedTypeReference;
@@ -19,9 +21,11 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Optional;
 
-@Slf4j
+
 @Service
 public class UserService {
+
+    private static final Logger log = LoggerFactory.getLogger(UserService.class);
 
     @Autowired
     UserRepository userRepository;
@@ -103,11 +107,11 @@ public class UserService {
         if (responseEntity.getStatusCode() == HttpStatus.OK) {
             // Process the received map
             if (responseMap != null) {
-                System.out.println("Received Map:");
-                responseMap.forEach((key, value) -> log.info(key + ": " + value));
+                log.info("Received Map:");
+                responseMap.forEach((key, value) -> log.info("{}: {}", key, value));
                 return true;
             } else {
-                System.out.println("Response body is null.");
+                log.error("Response body is null.");
             }
         }
 

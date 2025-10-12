@@ -7,6 +7,9 @@ import com.example.linebook.entity.*;
 import com.example.linebook.repository.BookCopyRepository;
 import com.example.linebook.repository.BookRepository;
 import com.example.linebook.repository.LibraryRepository;
+import com.example.linebook.scheduler.NotificationScheduler;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -19,13 +22,14 @@ import java.util.stream.Collectors;
 @Service
 public class BookService {
 
+    private static final Logger log = LoggerFactory.getLogger(BookService.class);
+
     @Autowired
     BookRepository bookRepository;
     @Autowired
     BookCopyRepository bookCopyRepository;
     @Autowired
     LibraryRepository libraryRepository;
-
 
     /**
      * modifyBook
@@ -76,15 +80,16 @@ public class BookService {
      * searchBooks
      * @param title
      * @param author
+     * @param bookType
      * @param year
      * @return
      */
-    public List<BookSearch> searchBooks(String title, String author, int year) {
+    public List<BookSearch> searchBooks(String title, String author, BookType bookType, int year) {
         List<Book> books = new ArrayList<>();
 //        books.addAll(bookRepository.findByTitleContaining(query));
 //        books.addAll(bookRepository.findByAuthorContaining(query));
 
-        books.addAll(bookRepository.findBooks(title, author, year));
+        books.addAll(bookRepository.findBooks(title, author, bookType, year));
 
         return books.stream().distinct().map(book -> {
             Map<String, Long> availableCopies = bookCopyRepository.countAvailableCopiesByLibrary(book, BookCopyStatus.AVAILABLE)
