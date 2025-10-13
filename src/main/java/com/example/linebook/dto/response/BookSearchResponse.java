@@ -1,12 +1,10 @@
 package com.example.linebook.dto.response;
 
-import com.example.linebook.entity.Book;
 import com.example.linebook.entity.BookType;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 
 import java.util.List;
-import java.util.Map;
 
 @Data
 public class BookSearchResponse {
@@ -20,7 +18,14 @@ public class BookSearchResponse {
         private String author;
         private int publicationYear;
         private BookType type;
-        private Map<String, Long> availableCopies;
+        private List<LibraryBookCount> availableCopies;
+    }
+    @Data
+    @AllArgsConstructor
+    public static class LibraryBookCount {
+        private Long libraryId;
+        private String name;
+        private Long count;
     }
 }
 

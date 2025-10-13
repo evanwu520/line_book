@@ -6,9 +6,8 @@ import com.example.linebook.dto.request.ModifyBookRequest;
 import com.example.linebook.dto.response.AddBookResponse;
 import com.example.linebook.dto.response.BookSearchResponse;
 import com.example.linebook.dto.response.ModifyBookResponse;
-import com.example.linebook.dto.response.RegisterUseResponse;
 import com.example.linebook.entity.Book;
-import com.example.linebook.entity.BookSearch;
+import com.example.linebook.entity.custom.BookSearch;
 import com.example.linebook.entity.BookType;
 import com.example.linebook.service.BookService;
 import com.example.linebook.service.LockServcie;
@@ -18,17 +17,17 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
-
+@Slf4j
 @RestController
 @RequestMapping("/api/books")
 public class BookController {
 
-    private static final Logger log = LoggerFactory.getLogger(BookController.class);
 
     @Autowired
     BookService bookService;
@@ -97,7 +96,10 @@ public class BookController {
             bookResponse.setTitle(book.getBook().getTitle());
             bookResponse.setAuthor(book.getBook().getAuthor());
             bookResponse.setPublicationYear(book.getBook().getPublicationYear());
-            bookResponse.setAvailableCopies(book.getAvailableCopies());
+            bookResponse.setAvailableCopies( book.getAvailableCopies().stream()
+                   .map(lb-> new BookSearchResponse.LibraryBookCount(lb.getLibrary().getId(), lb.getLibrary().getName(),lb.getCount()))
+                   .collect(Collectors.toList())
+           );
             return bookResponse;
         }).collect(Collectors.toList());
 

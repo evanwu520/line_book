@@ -2,27 +2,24 @@ package com.example.linebook.service;
 
 import com.example.linebook.dto.request.AddBookRequest;
 import com.example.linebook.dto.request.ModifyBookRequest;
-import com.example.linebook.dto.response.BookSearchResponse;
 import com.example.linebook.entity.*;
+import com.example.linebook.entity.custom.BookSearch;
 import com.example.linebook.repository.BookCopyRepository;
 import com.example.linebook.repository.BookRepository;
 import com.example.linebook.repository.LibraryRepository;
-import com.example.linebook.scheduler.NotificationScheduler;
+import lombok.extern.slf4j.Slf4j;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 import java.util.stream.Collectors;
 
+@Slf4j
 @Service
 public class BookService {
-
-    private static final Logger log = LoggerFactory.getLogger(BookService.class);
 
     @Autowired
     BookRepository bookRepository;
@@ -85,18 +82,11 @@ public class BookService {
      * @return
      */
     public List<BookSearch> searchBooks(String title, String author, BookType bookType, int year) {
-        List<Book> books = new ArrayList<>();
-//        books.addAll(bookRepository.findByTitleContaining(query));
-//        books.addAll(bookRepository.findByAuthorContaining(query));
 
-        books.addAll(bookRepository.findBooks(title, author, bookType, year));
+        List<Book> books  = bookRepository.findBooks(title, author, bookType, year);
 
         return books.stream().distinct().map(book -> {
-            Map<String, Long> availableCopies = bookCopyRepository.countAvailableCopiesByLibrary(book, BookCopyStatus.AVAILABLE)
-                    .stream()
-                    .collect(Collectors.toMap(o -> (String) o[0], o -> (Long) o[1]));
-
-            return new BookSearch(book, availableCopies);
+            return new BookSearch(book, bookCopyRepository.countAvailableCopiesByLibrary(book, BookCopyStatus.AVAILABLE));
         }).collect(Collectors.toList());
     }
 }

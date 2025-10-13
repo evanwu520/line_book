@@ -6,7 +6,10 @@ import javax.validation.constraints.Positive;
 
 @Data
 public class BorrowRequest {
-    @Positive(message = "quantity must be positive")
+    @Positive(message = "bookId must be positive")
     private Long bookId;
+
+    @Positive(message = "libraryId must be positive")
+    private Long libraryId;
 
 }

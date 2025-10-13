@@ -1,8 +1,8 @@
 package com.example.linebook.scheduler;
 
-import com.example.linebook.controller.AuthController;
 import com.example.linebook.entity.Loan;
 import com.example.linebook.repository.LoanRepository;
+import lombok.extern.slf4j.Slf4j;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -13,10 +13,10 @@ import org.springframework.stereotype.Component;
 import java.time.LocalDate;
 import java.util.List;
 
+@Slf4j
 @Component
 public class NotificationScheduler {
 
-    private static final Logger log = LoggerFactory.getLogger(NotificationScheduler.class);
 
     @Autowired
     LoanRepository loanRepository;

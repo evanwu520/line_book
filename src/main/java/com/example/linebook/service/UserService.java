@@ -21,11 +21,9 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Optional;
 
-
+@Slf4j
 @Service
 public class UserService {
-
-    private static final Logger log = LoggerFactory.getLogger(UserService.class);
 
     @Autowired
     UserRepository userRepository;

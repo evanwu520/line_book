@@ -2,25 +2,24 @@ package com.example.linebook.service;
 
 import com.example.linebook.dto.request.ReturnRequest;
 import com.example.linebook.entity.*;
-import com.example.linebook.repository.BookCopyRepository;
-import com.example.linebook.repository.BookRepository;
-import com.example.linebook.repository.LoanRepository;
-import com.example.linebook.repository.UserRepository;
+import com.example.linebook.repository.*;
+import lombok.extern.slf4j.Slf4j;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.expression.ExpressionException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
 import java.util.List;
 
+import static org.slf4j.LoggerFactory.getLogger;
+
+@Slf4j
 @Service
 public class LoanService {
 
-    private static final Logger log = LoggerFactory.getLogger(LoanService.class);
 
     @Autowired
     LoanRepository loanRepository;
@@ -29,15 +28,14 @@ public class LoanService {
     @Autowired
     UserRepository userRepository;
     @Autowired
-    BookRepository bookRepository;
+    LibraryRepository libraryRepository;
 
     @Value("${book.loan.limit}")
     private int bookLoanLimit;
 
     @Transactional
-    public Loan borrowBook(Long userId, Long bookId) throws Exception {
+    public Loan borrowBook(Long userId, Long bookId, Long libraryId) throws Exception {
 
-        bookRepository.findById(bookId).orElseThrow(() -> new Exception("BOOK_NOT_FOUND"));
         User user = userRepository.findById(userId).orElseThrow(() -> new Exception("USER_NOT_FOUND"));
 
         long currentLoans = loanRepository.countByUserAndReturnDateIsNull(user);
@@ -45,7 +43,11 @@ public class LoanService {
             throw new Exception("LOAN_MAX_LIMIT");
         }
 
-        List<BookCopy> availableCopies = bookCopyRepository.findByBookAndStatus(new Book() {{ setId(bookId); }}, BookCopyStatus.AVAILABLE);
+        Library library = libraryRepository.findById(libraryId).orElseThrow(() -> new Exception("Library_NOT_FOUND"));
+
+        List<BookCopy> availableCopies = bookCopyRepository.findByBookAndStatusAndLibrary(new Book() {{ setId(bookId); }},
+                BookCopyStatus.AVAILABLE, library);
+
         if (availableCopies.isEmpty()) {
             throw new Exception("NO_AVAILABLE_BOOK");
         }
@@ -62,6 +64,7 @@ public class LoanService {
         return loanRepository.save(loan);
     }
 
+    @Transactional
     public Loan returnBook(ReturnRequest returnRequest) {
         Loan loan = loanRepository.findById(returnRequest.getLoanId()).orElseThrow(() -> new RuntimeException("Loan not found"));
         loan.setReturnDate(LocalDate.now());
