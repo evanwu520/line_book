@@ -1,11 +1,12 @@
 package com.example.linebook.service;
 
 import com.example.linebook.dto.request.ReturnRequest;
+import com.example.linebook.dto.response.BorrowBookResponse;
+import com.example.linebook.dto.response.ReturnBookResponse;
 import com.example.linebook.entity.*;
 import com.example.linebook.repository.*;
 import lombok.extern.slf4j.Slf4j;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -13,8 +14,6 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
 import java.util.List;
-
-import static org.slf4j.LoggerFactory.getLogger;
 
 @Slf4j
 @Service
@@ -30,11 +29,14 @@ public class LoanService {
     @Autowired
     LibraryRepository libraryRepository;
 
+    @Autowired
+    private ModelMapper modelMapper;
+
     @Value("${book.loan.limit}")
     private int bookLoanLimit;
 
     @Transactional
-    public Loan borrowBook(Long userId, Long bookId, Long libraryId) throws Exception {
+    public BorrowBookResponse borrowBook(Long userId, Long bookId, Long libraryId) throws Exception {
 
         User user = userRepository.findById(userId).orElseThrow(() -> new Exception("USER_NOT_FOUND"));
 
@@ -61,11 +63,12 @@ public class LoanService {
         loan.setUser(user);
         loan.setLoanDate(LocalDate.now());
         loan.setDueDate(LocalDate.now().plusMonths(1));
-        return loanRepository.save(loan);
+
+        return  modelMapper.map(loanRepository.save(loan), BorrowBookResponse.class);
     }
 
     @Transactional
-    public Loan returnBook(ReturnRequest returnRequest) {
+    public ReturnBookResponse returnBook(ReturnRequest returnRequest) {
         Loan loan = loanRepository.findById(returnRequest.getLoanId()).orElseThrow(() -> new RuntimeException("Loan not found"));
         loan.setReturnDate(LocalDate.now());
 
@@ -73,6 +76,6 @@ public class LoanService {
         bookCopy.setStatus(BookCopyStatus.AVAILABLE);
         bookCopyRepository.save(bookCopy);
 
-        return loanRepository.save(loan);
+        return modelMapper.map(loanRepository.save(loan), ReturnBookResponse.class);
     }
 }

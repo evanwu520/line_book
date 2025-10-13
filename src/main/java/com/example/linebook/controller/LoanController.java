@@ -4,11 +4,10 @@ import com.example.linebook.dto.ApiResponse;
 import com.example.linebook.dto.request.BorrowRequest;
 import com.example.linebook.dto.request.ReturnRequest;
 
+import com.example.linebook.dto.response.ReturnBookResponse;
 import com.example.linebook.service.LoanService;
 import com.example.linebook.service.LockServcie;
 import lombok.extern.slf4j.Slf4j;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -47,9 +46,9 @@ public class LoanController {
 
     @PostMapping("/return")
     @PreAuthorize("hasAuthority('BORROW_BOOKS')")
-    public ResponseEntity<?> returnBook(@RequestAttribute("userId") Long userId,
-                                        @RequestHeader("Authorization") String token,
-                                        @RequestBody ReturnRequest returnRequest) {
+    public ResponseEntity<ReturnBookResponse> returnBook(@ApiIgnore @RequestAttribute("userId") Long userId,
+                                                         @RequestHeader("Authorization") String token,
+                                                         @RequestBody ReturnRequest returnRequest) {
         return ResponseEntity.ok(loanService.returnBook(returnRequest));
     }
 }

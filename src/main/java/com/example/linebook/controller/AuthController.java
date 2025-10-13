@@ -34,11 +34,7 @@ public class AuthController {
     public ResponseEntity<ApiResponse<RegisterUseResponse>> registerUser(@RequestBody UserRegistrationRequest registrationRequest) {
 
         try {
-            RegisterUseResponse registerUseResponse = new RegisterUseResponse();
-            User user = userService.registerNewUser(registrationRequest);
-            registerUseResponse.setUserId(user.getId());
-            registerUseResponse.setUsername(user.getUsername());
-            registerUseResponse.setRoles(user.getRoles());
+            RegisterUseResponse registerUseResponse = userService.registerNewUser(registrationRequest);
             return ResponseEntity.ok(ApiResponse.success(registerUseResponse));
         } catch (Exception ex) {
             log.error(ex.getMessage());
@@ -50,18 +46,15 @@ public class AuthController {
     public ResponseEntity<ApiResponse<LoginResponse>> login(@RequestBody LoginRequest loginRequest) {
 
         try {
-            LoginResponse loginResponse = new LoginResponse();
-            User user = userService.login(loginRequest);
-            loginResponse.setUserId(user.getId());
-            loginResponse.setUsername(user.getUsername());
-            loginResponse.setRoles(user.getRoles());
-            List<String> permissionList = user.getRoles().stream()
+            LoginResponse loginResponse  = userService.login(loginRequest.getUsername(), loginRequest.getPassword());
+
+            List<String> permissionList = loginResponse.getRoles().stream()
                     .flatMap(r -> r.getPermissions().stream()) // flatten all permissions across roles
                     .map(p -> p.getName())                    // extract permission name
                     .distinct()                               // optional: remove duplicates
                     .collect(Collectors.toList());
             // generate jwt
-            loginResponse.setToken(JwtTokenUtil.generateToken(user.getId(), permissionList));
+            loginResponse.setToken(JwtTokenUtil.generateToken(loginResponse.getUserId(), permissionList));
             return ResponseEntity.ok(ApiResponse.success(loginResponse));
         } catch (Exception ex) {
             log.error(ex.getMessage());

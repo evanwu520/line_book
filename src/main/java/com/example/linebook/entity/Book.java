@@ -3,6 +3,7 @@ package com.example.linebook.entity;
 import javax.persistence.*;
 import lombok.Data;
 
+
 @Data
 @Entity
 public class Book {
@@ -18,5 +19,7 @@ public class Book {
     private int publicationYear;
 
     @Enumerated(EnumType.STRING)
+    @Column(nullable = true)
     private BookType type;
+
 }

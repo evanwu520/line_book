@@ -28,13 +28,11 @@ import java.util.stream.Collectors;
 @RequestMapping("/api/books")
 public class BookController {
 
-
     @Autowired
     BookService bookService;
 
     @Autowired
     LockServcie lockServcie;
-
 
     @PutMapping
     @PreAuthorize("hasAuthority('MANAGE_BOOKS')")
@@ -44,13 +42,7 @@ public class BookController {
             if (!lockServcie.tryBookLockById(modifyBookRequest.getId())){
                 return ResponseEntity.ok(ApiResponse.error("OPERATION_BUSY"));
             }
-            ModifyBookResponse modifyBookResponse = new ModifyBookResponse();
-            Book book = bookService.modifyBook(modifyBookRequest);
-            modifyBookResponse.setId(book.getId());
-            modifyBookResponse.setType(book.getType());
-            modifyBookResponse.setTitle(book.getTitle());
-            modifyBookResponse.setAuthor(book.getAuthor());
-            modifyBookResponse.setPublicationYear(book.getPublicationYear());
+            ModifyBookResponse modifyBookResponse = bookService.modifyBook(modifyBookRequest);
             return ResponseEntity.ok(ApiResponse.success(modifyBookResponse));
         } catch (Exception ex) {
             log.error(ex.getMessage());
@@ -65,13 +57,7 @@ public class BookController {
     public ResponseEntity<ApiResponse<AddBookResponse>> addBook(@RequestHeader("Authorization") String token, @RequestBody AddBookRequest addBookRequest) {
 
         try {
-            AddBookResponse addBookResponse = new AddBookResponse();
-            Book book = bookService.addBook(addBookRequest);
-            addBookResponse.setId(book.getId());
-            addBookResponse.setType(book.getType());
-            addBookResponse.setTitle(book.getTitle());
-            addBookResponse.setAuthor(book.getAuthor());
-            addBookResponse.setPublicationYear(book.getPublicationYear());
+            AddBookResponse addBookResponse = bookService.addBook(addBookRequest);
             return ResponseEntity.ok(ApiResponse.success(addBookResponse));
         } catch (Exception ex) {
             log.error(ex.getMessage());
@@ -87,24 +73,7 @@ public class BookController {
                                                                        @RequestParam(required = false) Optional<BookType> bookType,
                                                                        @RequestParam(required = false, defaultValue = "0") int year) {
 
-       List<BookSearch> books = bookService.searchBooks(title, author, bookType.orElse(null), year);
-       BookSearchResponse bookSearchResponse = new BookSearchResponse();
-       List<BookSearchResponse.book> bookResponseList =  books.stream().distinct().map(book -> {
-            BookSearchResponse.book  bookResponse = new BookSearchResponse.book();
-            bookResponse.setId(book.getBook().getId());
-            bookResponse.setType(book.getBook().getType());
-            bookResponse.setTitle(book.getBook().getTitle());
-            bookResponse.setAuthor(book.getBook().getAuthor());
-            bookResponse.setPublicationYear(book.getBook().getPublicationYear());
-            bookResponse.setAvailableCopies( book.getAvailableCopies().stream()
-                   .map(lb-> new BookSearchResponse.LibraryBookCount(lb.getLibrary().getId(), lb.getLibrary().getName(),lb.getCount()))
-                   .collect(Collectors.toList())
-           );
-            return bookResponse;
-        }).collect(Collectors.toList());
-
-        bookSearchResponse.setBooks(bookResponseList);
-
-        return ResponseEntity.ok(ApiResponse.success(bookSearchResponse));
+       BookSearchResponse bookSearchResponse = bookService.searchBooks(title, author, bookType.orElse(null), year);
+       return ResponseEntity.ok(ApiResponse.success(bookSearchResponse));
     }
 }

@@ -2,11 +2,14 @@ package com.example.linebook.service;
 
 import com.example.linebook.dto.request.LoginRequest;
 import com.example.linebook.dto.request.UserRegistrationRequest;
+import com.example.linebook.dto.response.LoginResponse;
+import com.example.linebook.dto.response.RegisterUseResponse;
 import com.example.linebook.entity.Role;
 import com.example.linebook.entity.User;
 import com.example.linebook.repository.RoleRepository;
 import com.example.linebook.repository.UserRepository;
 import lombok.extern.slf4j.Slf4j;
+import org.modelmapper.ModelMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -31,27 +34,31 @@ public class UserService {
     @Autowired
     RoleRepository roleRepository;
 
+    @Autowired
+    private ModelMapper modelMapper;
+
     @Value("${user.authenticate.url}")
     private String userAuthenticateUrl;
 
     /**
      * login
-     * @param loginRequest
+     * @param password
+     * @param password
      * @return
      * @throws Exception
      */
-    public User login(LoginRequest loginRequest) throws  Exception {
+    public LoginResponse login(String username, String password) throws  Exception {
 
-        Optional<User> userOptional = userRepository.findByUsername(loginRequest.getUsername());
+        Optional<User> userOptional = userRepository.findByUsername(username);
         userOptional.orElseThrow(() -> new Exception("USER_NOT_FOUND"));
 
         User user = userOptional.get();
 
-        if (!loginRequest.getPassword().equals(user.getPassword())) {
+        if (!password.equals(user.getPassword())) {
             throw new Exception("VERIFY_PASSWORD_FAIL");
         }
 
-        return  user;
+        return  modelMapper.map(user, LoginResponse.class);
     }
 
     /**
@@ -59,7 +66,7 @@ public class UserService {
      * @param registrationRequest
      * @return
      */
-    public User registerNewUser(UserRegistrationRequest registrationRequest) throws  Exception{
+    public RegisterUseResponse registerNewUser(UserRegistrationRequest registrationRequest) throws  Exception{
 
         User newUser = new User();
         newUser.setUsername(registrationRequest.getUsername());
@@ -74,7 +81,8 @@ public class UserService {
              memberRole = roleRepository.findByName("LIBRARIAN");
         }
         newUser.setRoles(new HashSet<>(Collections.singletonList(memberRole)));
-        return userRepository.save(newUser);
+        User savedUser = userRepository.save(newUser);
+        return modelMapper.map(savedUser, RegisterUseResponse.class);
     }
 
     /**
