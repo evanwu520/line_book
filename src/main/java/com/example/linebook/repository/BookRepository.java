@@ -2,6 +2,8 @@ package com.example.linebook.repository;
 
 import com.example.linebook.entity.Book;
 import com.example.linebook.entity.BookType;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -20,9 +22,10 @@ public interface BookRepository extends JpaRepository<Book, Long> {
             "AND (:author IS NULL OR b.author LIKE %:author%) " +
             "AND (:type IS NULL OR b.type = :type) " +
             "AND (:year = 0 OR b.publicationYear = :year)")
-    List<Book> findBooks(@Param("title") String title,
-                         @Param("author") String author,
-                         @Param("type") BookType type,
-                         @Param("year") int year);
+    Page<Book> findBooks(@Param("title") String title,
+                               @Param("author") String author,
+                               @Param("type") BookType type,
+                               @Param("year") int year,
+                               Pageable pageable);
 
 }

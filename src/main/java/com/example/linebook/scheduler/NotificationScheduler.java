@@ -25,8 +25,10 @@ public class NotificationScheduler {
     @Value("${tip_before_days}")
     private int tipBeforeDays;
 
-    @Scheduled(cron = "0 0 1 * * ?") // Run every day at 1 AM
+//    @Scheduled(cron = "0 0 1 * * ?") // Run every day at 1 AM
+    @Scheduled(cron = "0 * * * * ?")
     public void sendDueDateNotifications() {
+        log.info("sendDueDateNotifications");
         LocalDate notificationDate = LocalDate.now().plusDays(tipBeforeDays);
         List<Loan> upcomingDueLoans = loanRepository.findByDueDateBeforeAndReturnDateIsNull(notificationDate);
 

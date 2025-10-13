@@ -1,8 +1,7 @@
 CREATE TABLE  IF NOT EXISTS users (
     id BIGINT AUTO_INCREMENT PRIMARY KEY,
-    username VARCHAR(255) NOT NULL,
+    username VARCHAR(255) NOT NULL UNIQUE,
     password VARCHAR(255) NOT NULL
-    --email  VARCHAR(255) NOT NULL
 );
 
 CREATE TABLE  IF NOT EXISTS role (
@@ -41,7 +40,8 @@ CREATE TABLE  IF NOT EXISTS book (
     title VARCHAR(255) NOT NULL,
     author VARCHAR(255) NOT NULL,
     publication_year INT NOT NULL,
-    type VARCHAR(255) NOT NULL
+    type VARCHAR(255) NOT NULL,
+    UNIQUE KEY uq_book_unique (title, author, publication_year, type)
 );
 
 CREATE TABLE  IF NOT EXISTS book_copy (
