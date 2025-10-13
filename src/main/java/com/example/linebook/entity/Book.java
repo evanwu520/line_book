@@ -6,6 +6,12 @@ import lombok.Data;
 
 @Data
 @Entity
+@Table(
+        name = "book",
+        uniqueConstraints = {
+                @UniqueConstraint(columnNames = {"title", "author", "publication_year", "type"})
+        }
+)
 public class Book {
 
     @Id
@@ -16,6 +22,7 @@ public class Book {
 
     private String author;
 
+    @Column(name = "publication_year")
     private int publicationYear;
 
     @Enumerated(EnumType.STRING)

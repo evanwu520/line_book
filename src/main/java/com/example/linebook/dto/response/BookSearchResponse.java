@@ -10,6 +10,8 @@ import java.util.List;
 public class BookSearchResponse {
 
     private List<book> books;
+    private int totalPages;
+    private Long totalCount;
 
     @Data
     public static class book{

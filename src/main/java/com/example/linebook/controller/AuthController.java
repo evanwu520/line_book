@@ -6,12 +6,10 @@ import com.example.linebook.dto.ApiResponse;
 import com.example.linebook.dto.response.LoginResponse;
 import com.example.linebook.dto.request.LoginRequest;
 import com.example.linebook.dto.request.UserRegistrationRequest;
-import com.example.linebook.entity.User;
 import com.example.linebook.service.UserService;
 import lombok.extern.slf4j.Slf4j;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -36,6 +34,10 @@ public class AuthController {
         try {
             RegisterUseResponse registerUseResponse = userService.registerNewUser(registrationRequest);
             return ResponseEntity.ok(ApiResponse.success(registerUseResponse));
+        } catch (DataIntegrityViolationException de) {
+            log.error(de.getMessage());
+            return ResponseEntity.ok(ApiResponse.error("DUPLICATE_UNIQUE"));
+
         } catch (Exception ex) {
             log.error(ex.getMessage());
             return ResponseEntity.ok(ApiResponse.error(ex.getMessage()));

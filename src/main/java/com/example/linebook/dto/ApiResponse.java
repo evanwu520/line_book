@@ -11,14 +11,12 @@ public class ApiResponse<T> {
 
     private final static ObjectMapper objectMapper = new ObjectMapper();
 
-    private boolean success;
-    private String code;    // e.g. "USER_001" or "SYS_500"
-    private String message; // human-readable message
+    private String code;
+    private String message;
     private T data;
 
 
-    public ApiResponse(boolean success, String code, String message, T data) {
-        this.success = success;
+    public ApiResponse(String code, String message, T data) {
         this.code = code;
         this.message = message;
         this.data = data;
@@ -26,17 +24,17 @@ public class ApiResponse<T> {
 
     // Factory methods for simplicity
     public static <T> ApiResponse<T> success(String code, String message, T data) {
-        return new ApiResponse<>(true, code, message, data);
+        return new ApiResponse<>( code, message, data);
     }
 
     public static <T> ApiResponse<T> success(T data) {
-        return new ApiResponse<>(true, "SUCCESS", "OK", data);
+        return new ApiResponse<>("SUCCESS", "SUCCESS", data);
     }
 
     public static <T> ApiResponse<T> error(String code) {
-         String message = "error";
+         String message = code;
          // TODO eroor message
-        return new ApiResponse<>(false, code, message, null);
+        return new ApiResponse<>( code, message, null);
     }
 
     public static void writeReponseError(HttpServletResponse response, int status,String code) throws IOException {

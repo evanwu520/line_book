@@ -12,9 +12,10 @@ import com.example.linebook.repository.BookRepository;
 import com.example.linebook.repository.LibraryRepository;
 import lombok.extern.slf4j.Slf4j;
 import org.modelmapper.ModelMapper;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -44,7 +45,10 @@ public class BookService {
     public ModifyBookResponse modifyBook(ModifyBookRequest modifyBookRequest) throws Exception {
 
         Book book = bookRepository.findById(modifyBookRequest.getId()).orElseThrow(() -> new Exception("BOOK_NOT_FOUND"));
-        modelMapper.map(modifyBookRequest, book);
+        book.setTitle(modifyBookRequest.getTitle());
+        book.setAuthor(modifyBookRequest.getAuthor());
+        book.setPublicationYear(modifyBookRequest.getPublicationYear());
+        book.setType(modifyBookRequest.getType());
         book = bookRepository.save(book);
 
         return modelMapper.map(book, ModifyBookResponse.class);
@@ -57,7 +61,13 @@ public class BookService {
      */
     @Transactional
     public AddBookResponse addBook(AddBookRequest addBookRequest) {
-        Book book = modelMapper.map(addBookRequest, Book.class);
+
+        Book book = new Book();
+        book.setTitle(addBookRequest.getTitle());
+        book.setAuthor(addBookRequest.getAuthor());
+        book.setPublicationYear(addBookRequest.getPublicationYear());
+        book.setType(addBookRequest.getType());
+
         book = bookRepository.save(book);
 
         Library library = libraryRepository.findById(addBookRequest.getLibraryId()).orElseThrow(() -> new RuntimeException("Library not found"));
@@ -79,13 +89,17 @@ public class BookService {
      * @param author
      * @param bookType
      * @param year
+     * @param page
+     * @param size
      * @return
      */
-    public BookSearchResponse searchBooks(String title, String author, BookType bookType, int year) {
+    public BookSearchResponse searchBooks(String title, String author, BookType bookType,
+                                          int year, int page, int size) {
 
-        List<Book> books  = bookRepository.findBooks(title, author, bookType, year);
+        Pageable pageable = PageRequest.of(page, size);
+        Page<Book> books  = bookRepository.findBooks(title, author, bookType, year, pageable);
 
-        List<BookSearch> bookSearches = books.stream().distinct().map(book -> {
+        List<BookSearch> bookSearches = books.getContent().stream().distinct().map(book -> {
             return new BookSearch(book, bookCopyRepository.countAvailableCopiesByLibrary(book, BookCopyStatus.AVAILABLE));
         }).collect(Collectors.toList());
 
@@ -99,7 +113,10 @@ public class BookService {
             return bookResponse;
         }).collect(Collectors.toList());
 
+        bookSearchResponse.setTotalPages(books.getTotalPages());
+        bookSearchResponse.setTotalCount(books.getTotalElements());
         bookSearchResponse.setBooks(bookResponseList);
+
         return bookSearchResponse;
     }
 }

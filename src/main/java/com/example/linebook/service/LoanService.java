@@ -4,6 +4,7 @@ import com.example.linebook.dto.request.ReturnRequest;
 import com.example.linebook.dto.response.BorrowBookResponse;
 import com.example.linebook.dto.response.ReturnBookResponse;
 import com.example.linebook.entity.*;
+import com.example.linebook.entity.custom.LoanBookCount;
 import com.example.linebook.repository.*;
 import lombok.extern.slf4j.Slf4j;
 import org.modelmapper.ModelMapper;
@@ -14,6 +15,10 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Map;
+import java.util.function.Function;
+import java.util.stream.Collector;
+import java.util.stream.Collectors;
 
 @Slf4j
 @Service
@@ -28,22 +33,40 @@ public class LoanService {
     UserRepository userRepository;
     @Autowired
     LibraryRepository libraryRepository;
+    @Autowired
+    LockService lockService;
 
     @Autowired
     private ModelMapper modelMapper;
 
-    @Value("${book.loan.limit}")
-    private int bookLoanLimit;
+    @Value("${book.loan.book.limit}")
+    private int bookLoanBookLimit;
+
+    @Value("${book.loan.magazine.limit}")
+    private int bookLoanMagazineLimit;
 
     @Transactional
     public BorrowBookResponse borrowBook(Long userId, Long bookId, Long libraryId) throws Exception {
 
         User user = userRepository.findById(userId).orElseThrow(() -> new Exception("USER_NOT_FOUND"));
 
-        long currentLoans = loanRepository.countByUserAndReturnDateIsNull(user);
-        if (currentLoans >= bookLoanLimit) { // Assuming 10 is the max for all types for now
-            throw new Exception("LOAN_MAX_LIMIT");
+        List<LoanBookCount> loanBookCount = loanRepository.countLoanBookGroupByBookTypeByUser(user);
+
+//        Map<BookType, Long> bookTypeCountMap = loanBookCount.stream().collect(
+//                Collectors.toMap(LoanBookCount :: getBookType,  Function.identity() ));
+
+        Map<BookType, Long> bookTypeCountMap = loanBookCount.stream().collect(
+                Collectors.toMap(LoanBookCount::getBookType, LoanBookCount::getCount)
+        );
+
+        if (bookTypeCountMap.getOrDefault(BookType.BOOK,0L) >= bookLoanBookLimit) {
+            throw new Exception("LOAN_BOOK_MAX_LIMIT");
         }
+
+        if (bookTypeCountMap.getOrDefault(BookType.MAGAZINE,0L) >= bookLoanMagazineLimit) {
+            throw new Exception("LOAN_MAGAZINE_MAX_LIMIT");
+        }
+
 
         Library library = libraryRepository.findById(libraryId).orElseThrow(() -> new Exception("Library_NOT_FOUND"));
 
@@ -54,22 +77,49 @@ public class LoanService {
             throw new Exception("NO_AVAILABLE_BOOK");
         }
 
-        BookCopy copyToLoan = availableCopies.get(0);
-        copyToLoan.setStatus(BookCopyStatus.LOANED);
-        bookCopyRepository.save(copyToLoan);
+        BookCopy copyToLoan = null;
 
-        Loan loan = new Loan();
-        loan.setBookCopy(copyToLoan);
-        loan.setUser(user);
-        loan.setLoanDate(LocalDate.now());
-        loan.setDueDate(LocalDate.now().plusMonths(1));
+        try {
 
-        return  modelMapper.map(loanRepository.save(loan), BorrowBookResponse.class);
+            // get lock success BookCopy
+            for (BookCopy bookCopy : availableCopies) {
+                if (lockService.tryBookCopyLockById(bookCopy.getId())) {
+                    copyToLoan = bookCopy;
+                    break;
+                }
+            }
+
+            if (copyToLoan == null) {
+                throw new Exception("NO_AVAILABLE_BOOK");
+            }
+
+            copyToLoan.setStatus(BookCopyStatus.LOANED);
+            bookCopyRepository.save(copyToLoan);
+
+            Loan loan = new Loan();
+            loan.setBookCopy(copyToLoan);
+            loan.setUser(user);
+            loan.setLoanDate(LocalDate.now());
+            loan.setDueDate(LocalDate.now().plusMonths(1));
+
+            return  modelMapper.map(loanRepository.save(loan), BorrowBookResponse.class);
+        } finally {
+            if (copyToLoan != null) {
+                lockService.unlockBookCopyId(copyToLoan.getId());
+            };
+        }
+
     }
 
     @Transactional
-    public ReturnBookResponse returnBook(ReturnRequest returnRequest) {
-        Loan loan = loanRepository.findById(returnRequest.getLoanId()).orElseThrow(() -> new RuntimeException("Loan not found"));
+    public ReturnBookResponse returnBook(ReturnRequest returnRequest) throws Exception {
+        Loan loan = loanRepository.findById(returnRequest.getLoanId()).orElseThrow(() -> new Exception("LOAN_NOT_FOUND"));
+
+        if ( loan.getReturnDate() != null  ||
+                loan.getBookCopy().getStatus() == BookCopyStatus.AVAILABLE) {
+            throw new Exception("LOAN_NOT_FOUND");
+        }
+
         loan.setReturnDate(LocalDate.now());
 
         BookCopy bookCopy = loan.getBookCopy();

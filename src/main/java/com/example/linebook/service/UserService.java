@@ -1,6 +1,5 @@
 package com.example.linebook.service;
 
-import com.example.linebook.dto.request.LoginRequest;
 import com.example.linebook.dto.request.UserRegistrationRequest;
 import com.example.linebook.dto.response.LoginResponse;
 import com.example.linebook.dto.response.RegisterUseResponse;
@@ -10,8 +9,6 @@ import com.example.linebook.repository.RoleRepository;
 import com.example.linebook.repository.UserRepository;
 import lombok.extern.slf4j.Slf4j;
 import org.modelmapper.ModelMapper;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.ParameterizedTypeReference;
