@@ -1,8 +1,10 @@
 package com.example.linebook.filter;
 
 import com.example.linebook.dto.ApiResponse;
+import com.example.linebook.exception.ErrorCode;
 import com.example.linebook.util.JwtTokenUtil;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.springframework.http.MediaType;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -21,6 +23,8 @@ import java.util.stream.Collectors;
 @Component
 public class JwtAuthFilter extends OncePerRequestFilter {
 
+
+    private final static ObjectMapper objectMapper = new ObjectMapper();
 
 
     @Override
@@ -61,22 +65,23 @@ public class JwtAuthFilter extends OncePerRequestFilter {
                         );
 
                 SecurityContextHolder.getContext().setAuthentication(authentication);
-
             } else {
-//                ApiResponse.writeReponseError(response, HttpServletResponse.SC_UNAUTHORIZED,
-//
-                response.setStatus(HttpServletResponse.SC_FORBIDDEN);
+                sendUnauthorizedErrorResponse(response);
                 return;
             }
         } else {
-//            ApiResponse.writeReponseError(response, HttpServletResponse.SC_UNAUTHORIZED,
-//                    "TOKEN_MISSING");
-
-            response.setStatus(HttpServletResponse.SC_FORBIDDEN);
+            sendUnauthorizedErrorResponse(response);
             return;
         }
 
         filterChain.doFilter(request, response);
+    }
+
+    private void sendUnauthorizedErrorResponse(HttpServletResponse response)
+            throws IOException {
+        response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+        response.setContentType(MediaType.APPLICATION_JSON_VALUE);
+        response.getWriter().write(objectMapper.writeValueAsString(ApiResponse.error(ErrorCode.UNAUTHORIZED)));
     }
 
 }

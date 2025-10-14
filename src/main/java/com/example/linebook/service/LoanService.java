@@ -5,6 +5,8 @@ import com.example.linebook.dto.response.BorrowBookResponse;
 import com.example.linebook.dto.response.ReturnBookResponse;
 import com.example.linebook.entity.*;
 import com.example.linebook.entity.custom.LoanBookCount;
+import com.example.linebook.exception.ApiException;
+import com.example.linebook.exception.ErrorCode;
 import com.example.linebook.repository.*;
 import lombok.extern.slf4j.Slf4j;
 import org.modelmapper.ModelMapper;
@@ -46,9 +48,9 @@ public class LoanService {
     private int bookLoanMagazineLimit;
 
     @Transactional
-    public BorrowBookResponse borrowBook(Long userId, Long bookId, Long libraryId) throws Exception {
+    public BorrowBookResponse borrowBook(Long userId, Long bookId, Long libraryId) throws ApiException {
 
-        User user = userRepository.findById(userId).orElseThrow(() -> new Exception("USER_NOT_FOUND"));
+        User user = userRepository.findById(userId).orElseThrow(() -> new ApiException(ErrorCode.NOT_FOUND, "USER_NOT_FOUND"));
 
         List<LoanBookCount> loanBookCount = loanRepository.countLoanBookGroupByBookTypeByUser(user);
 
@@ -60,21 +62,21 @@ public class LoanService {
         );
 
         if (bookTypeCountMap.getOrDefault(BookType.BOOK,0L) >= bookLoanBookLimit) {
-            throw new Exception("LOAN_BOOK_MAX_LIMIT");
+            throw new ApiException(ErrorCode.LIMIT_MAX ,"LOAN_BOOK_MAX_LIMIT");
         }
 
         if (bookTypeCountMap.getOrDefault(BookType.MAGAZINE,0L) >= bookLoanMagazineLimit) {
-            throw new Exception("LOAN_MAGAZINE_MAX_LIMIT");
+            throw new ApiException(ErrorCode.LIMIT_MAX ,"LOAN_MAGAZINE_MAX_LIMIT");
         }
 
 
-        Library library = libraryRepository.findById(libraryId).orElseThrow(() -> new Exception("Library_NOT_FOUND"));
+        Library library = libraryRepository.findById(libraryId).orElseThrow(() -> new ApiException(ErrorCode.NOT_FOUND, "Library_NOT_FOUND"));
 
         List<BookCopy> availableCopies = bookCopyRepository.findByBookAndStatusAndLibrary(new Book() {{ setId(bookId); }},
                 BookCopyStatus.AVAILABLE, library);
 
         if (availableCopies.isEmpty()) {
-            throw new Exception("NO_AVAILABLE_BOOK");
+            throw new ApiException(ErrorCode.NOT_FOUND, "NO_AVAILABLE_BOOK");
         }
 
         BookCopy copyToLoan = null;
@@ -90,7 +92,7 @@ public class LoanService {
             }
 
             if (copyToLoan == null) {
-                throw new Exception("NO_AVAILABLE_BOOK");
+                throw new ApiException(ErrorCode.NOT_FOUND, "NO_AVAILABLE_BOOK");
             }
 
             copyToLoan.setStatus(BookCopyStatus.LOANED);
@@ -112,12 +114,12 @@ public class LoanService {
     }
 
     @Transactional
-    public ReturnBookResponse returnBook(ReturnRequest returnRequest) throws Exception {
-        Loan loan = loanRepository.findById(returnRequest.getLoanId()).orElseThrow(() -> new Exception("LOAN_NOT_FOUND"));
+    public ReturnBookResponse returnBook(ReturnRequest returnRequest) throws ApiException {
+        Loan loan = loanRepository.findById(returnRequest.getLoanId()).orElseThrow(() -> new ApiException(ErrorCode.NOT_FOUND, "LOAN_NOT_FOUND"));
 
         if ( loan.getReturnDate() != null  ||
                 loan.getBookCopy().getStatus() == BookCopyStatus.AVAILABLE) {
-            throw new Exception("LOAN_NOT_FOUND");
+            throw new ApiException(ErrorCode.NOT_FOUND, "LOAN_NOT_FOUND");
         }
 
         loan.setReturnDate(LocalDate.now());

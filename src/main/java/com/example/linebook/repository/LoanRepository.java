@@ -20,7 +20,7 @@ public interface LoanRepository extends JpaRepository<Loan, Long> {
 
     @Query("SELECT NEW com.example.linebook.entity.custom.LoanBookCount(b.type, COUNT(l)) " +
             "FROM Loan l JOIN l.bookCopy bc JOIN bc.book b " +
-            "WHERE l.user = :user GROUP BY b.type")
+            "WHERE l.user = :user  AND l.returnDate IS NULL GROUP BY b.type")
     List<LoanBookCount> countLoanBookGroupByBookTypeByUser(@Param("user") User user);
 
 }

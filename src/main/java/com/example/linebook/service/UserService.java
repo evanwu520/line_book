@@ -5,6 +5,8 @@ import com.example.linebook.dto.response.LoginResponse;
 import com.example.linebook.dto.response.RegisterUseResponse;
 import com.example.linebook.entity.Role;
 import com.example.linebook.entity.User;
+import com.example.linebook.exception.ApiException;
+import com.example.linebook.exception.ErrorCode;
 import com.example.linebook.repository.RoleRepository;
 import com.example.linebook.repository.UserRepository;
 import lombok.extern.slf4j.Slf4j;
@@ -44,15 +46,15 @@ public class UserService {
      * @return
      * @throws Exception
      */
-    public LoginResponse login(String username, String password) throws  Exception {
+    public LoginResponse login(String username, String password) throws  ApiException {
 
         Optional<User> userOptional = userRepository.findByUsername(username);
-        userOptional.orElseThrow(() -> new Exception("USER_NOT_FOUND"));
+        userOptional.orElseThrow(() -> new ApiException(ErrorCode.NOT_FOUND, "USER_NOT_FOUND"));
 
         User user = userOptional.get();
 
         if (!password.equals(user.getPassword())) {
-            throw new Exception("VERIFY_PASSWORD_FAIL");
+            throw new ApiException(ErrorCode.UNAUTHORIZED, "VERIFY_PASSWORD_FAIL");
         }
 
         return  modelMapper.map(user, LoginResponse.class);
@@ -63,7 +65,7 @@ public class UserService {
      * @param registrationRequest
      * @return
      */
-    public RegisterUseResponse registerNewUser(UserRegistrationRequest registrationRequest) throws  Exception{
+    public RegisterUseResponse registerNewUser(UserRegistrationRequest registrationRequest) throws ApiException {
 
         User newUser = new User();
         newUser.setUsername(registrationRequest.getUsername());
@@ -73,7 +75,7 @@ public class UserService {
         if (registrationRequest.getUserType() == 2) {
             // API call for validation
             if (!authenticate(true, newUser.getUsername())) {
-                throw new Exception("VERIFY_FAIL");
+                throw new ApiException(ErrorCode.UNAUTHORIZED);
             }
              memberRole = roleRepository.findByName("LIBRARIAN");
         }

@@ -2,6 +2,8 @@ package com.example.linebook.config;
 
 
 import com.example.linebook.filter.JwtAuthFilter;
+
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -22,11 +24,6 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
     @Autowired
     private JwtAuthFilter jwtAuthFilter;
 
-    @Bean
-    public AuthenticationManager authenticationManager(AuthenticationConfiguration configuration)
-            throws Exception {
-        return configuration.getAuthenticationManager();
-    }
     @Override
     protected void configure(HttpSecurity http) throws Exception {
         http
@@ -36,7 +33,6 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                 .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
                 .and()
                 .authorizeRequests()
-                // ✅ Swagger & public endpoints
                 .antMatchers(
                         "/api/auth/**",
                         "/h2-console",
@@ -47,10 +43,8 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                         "/swagger-resources/**",
                         "/webjars/**"
                 ).permitAll()
-                // ✅ Everything else needs authentication
                 .anyRequest().authenticated()
                 .and()
-                // ✅ Register JWT filter
                 .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);
     }
 }

@@ -6,6 +6,7 @@ import com.example.linebook.dto.request.ReturnRequest;
 
 import com.example.linebook.dto.response.BorrowBookResponse;
 import com.example.linebook.dto.response.ReturnBookResponse;
+import com.example.linebook.exception.ApiException;
 import com.example.linebook.service.LoanService;
 import com.example.linebook.service.LockService;
 import lombok.extern.slf4j.Slf4j;
@@ -33,9 +34,9 @@ public class LoanController {
                                                                       @RequestBody BorrowRequest borrowRequest) {
         try {
            return ResponseEntity.ok( ApiResponse.success(loanService.borrowBook(userId, borrowRequest.getBookId(), borrowRequest.getLibraryId())));
-        } catch (Exception ex) {
+        } catch (ApiException ex) {
             log.error(ex.getMessage());
-            return ResponseEntity.ok(ApiResponse.error(ex.getMessage()));
+            return ResponseEntity.ok(ApiResponse.error(ex.getErrorCode()));
         }
     }
 
@@ -47,9 +48,9 @@ public class LoanController {
 
         try {
             return ResponseEntity.ok(ApiResponse.success(loanService.returnBook(returnRequest)));
-        } catch (Exception ex) {
-            log.error(ex.getMessage());
-            return ResponseEntity.ok(ApiResponse.error(ex.getMessage()));
+        } catch (ApiException ae) {
+            log.error(ae.getMessage());
+            return ResponseEntity.ok(ApiResponse.error(ae.getErrorCode()));
         }
     }
 }

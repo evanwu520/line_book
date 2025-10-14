@@ -1,5 +1,6 @@
 package com.example.linebook.dto;
 
+import com.example.linebook.exception.ErrorCode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.Data;
 
@@ -15,32 +16,35 @@ public class ApiResponse<T> {
     private String message;
     private T data;
 
-
     public ApiResponse(String code, String message, T data) {
         this.code = code;
+        this.data = data;
         this.message = message;
+    }
+
+    public ApiResponse(String code, T data) {
+        this.code = code;
         this.data = data;
     }
 
+
+
     // Factory methods for simplicity
     public static <T> ApiResponse<T> success(String code, String message, T data) {
-        return new ApiResponse<>( code, message, data);
+        return new ApiResponse<>( code, data);
     }
 
     public static <T> ApiResponse<T> success(T data) {
-        return new ApiResponse<>("SUCCESS", "SUCCESS", data);
+        return new ApiResponse<>("SUCCESS", data);
     }
 
-    public static <T> ApiResponse<T> error(String code) {
-         String message = code;
-         // TODO eroor message
-        return new ApiResponse<>( code, message, null);
+    public static <T> ApiResponse<T> error(ErrorCode errorCode) {
+        return new ApiResponse<>(errorCode.getCode(), errorCode.getMessage(), null);
     }
 
-    public static void writeReponseError(HttpServletResponse response, int status,String code) throws IOException {
-        response.setStatus(status);
-        response.setContentType("application/json;charset=UTF-8");
-        response.getWriter().write(objectMapper.writeValueAsString(ApiResponse.error(code)));
+    public static <T> ApiResponse<T> error(ErrorCode errorCode, String message) {
+        return new ApiResponse<>(errorCode.getCode(), message, null);
     }
+
 
 }
