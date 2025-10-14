@@ -20,7 +20,7 @@ public interface BookCopyRepository extends JpaRepository<BookCopy, Long> {
     @Query("SELECT NEW com.example.linebook.entity.custom.LibraryBookCount(bc.library, COUNT(bc.id)) " +
             "FROM BookCopy bc JOIN bc.library l " +
             "WHERE bc.book = :book AND bc.status = :status " +
-            "GROUP BY l.name")
+            "GROUP BY l.id")
     List<LibraryBookCount> countAvailableCopiesByLibrary(@Param("book") Book book,
                                                          @Param("status") BookCopyStatus status);
 

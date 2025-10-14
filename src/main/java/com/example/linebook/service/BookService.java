@@ -7,6 +7,8 @@ import com.example.linebook.dto.response.BookSearchResponse;
 import com.example.linebook.dto.response.ModifyBookResponse;
 import com.example.linebook.entity.*;
 import com.example.linebook.entity.custom.BookSearch;
+import com.example.linebook.exception.ApiException;
+import com.example.linebook.exception.ErrorCode;
 import com.example.linebook.repository.BookCopyRepository;
 import com.example.linebook.repository.BookRepository;
 import com.example.linebook.repository.LibraryRepository;
@@ -42,9 +44,9 @@ public class BookService {
      * @return
      * @throws Exception
      */
-    public ModifyBookResponse modifyBook(ModifyBookRequest modifyBookRequest) throws Exception {
+    public ModifyBookResponse modifyBook(ModifyBookRequest modifyBookRequest) throws ApiException {
 
-        Book book = bookRepository.findById(modifyBookRequest.getId()).orElseThrow(() -> new Exception("BOOK_NOT_FOUND"));
+        Book book = bookRepository.findById(modifyBookRequest.getId()).orElseThrow(() -> new ApiException(ErrorCode.NOT_FOUND, "BOOK_NOT_FOUND"));
         book.setTitle(modifyBookRequest.getTitle());
         book.setAuthor(modifyBookRequest.getAuthor());
         book.setPublicationYear(modifyBookRequest.getPublicationYear());
@@ -60,7 +62,7 @@ public class BookService {
      * @return
      */
     @Transactional
-    public AddBookResponse addBook(AddBookRequest addBookRequest) {
+    public AddBookResponse addBook(AddBookRequest addBookRequest) throws ApiException {
 
         Book book = new Book();
         book.setTitle(addBookRequest.getTitle());
@@ -70,7 +72,7 @@ public class BookService {
 
         book = bookRepository.save(book);
 
-        Library library = libraryRepository.findById(addBookRequest.getLibraryId()).orElseThrow(() -> new RuntimeException("Library not found"));
+        Library library = libraryRepository.findById(addBookRequest.getLibraryId()).orElseThrow(() -> new ApiException(ErrorCode.NOT_FOUND, "Library not found"));
 
         for (int i = 0; i < addBookRequest.getQuantity(); i++) {
             BookCopy bookCopy = new BookCopy();

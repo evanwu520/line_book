@@ -1,6 +1,8 @@
 package com.example.linebook.controller;
 
 import com.example.linebook.dto.response.RegisterUseResponse;
+import com.example.linebook.exception.ApiException;
+import com.example.linebook.exception.ErrorCode;
 import com.example.linebook.util.JwtTokenUtil;
 import com.example.linebook.dto.ApiResponse;
 import com.example.linebook.dto.response.LoginResponse;
@@ -36,11 +38,10 @@ public class AuthController {
             return ResponseEntity.ok(ApiResponse.success(registerUseResponse));
         } catch (DataIntegrityViolationException de) {
             log.error(de.getMessage());
-            return ResponseEntity.ok(ApiResponse.error("DUPLICATE_UNIQUE"));
-
-        } catch (Exception ex) {
+            return ResponseEntity.ok(ApiResponse.error(ErrorCode.DUPLICATE_UNIQUE));
+        } catch (ApiException ex) {
             log.error(ex.getMessage());
-            return ResponseEntity.ok(ApiResponse.error(ex.getMessage()));
+            return ResponseEntity.ok(ApiResponse.error(ex.getErrorCode()));
         }
     }
 
@@ -58,9 +59,9 @@ public class AuthController {
             // generate jwt
             loginResponse.setToken(JwtTokenUtil.generateToken(loginResponse.getUserId(), permissionList));
             return ResponseEntity.ok(ApiResponse.success(loginResponse));
-        } catch (Exception ex) {
+        } catch (ApiException ex) {
             log.error(ex.getMessage());
-            return ResponseEntity.ok(ApiResponse.error(ex.getMessage()));
+            return ResponseEntity.ok(ApiResponse.error(ex.getErrorCode()));
         }
     }
 }

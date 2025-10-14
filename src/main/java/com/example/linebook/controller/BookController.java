@@ -7,8 +7,11 @@ import com.example.linebook.dto.response.AddBookResponse;
 import com.example.linebook.dto.response.BookSearchResponse;
 import com.example.linebook.dto.response.ModifyBookResponse;
 import com.example.linebook.entity.BookType;
+import com.example.linebook.exception.ApiException;
+import com.example.linebook.exception.ErrorCode;
 import com.example.linebook.service.BookService;
 import com.example.linebook.service.LockService;
+import io.swagger.annotations.Api;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataIntegrityViolationException;
@@ -35,13 +38,13 @@ public class BookController {
 
         try {
             if (!lockService.tryBookLockById(modifyBookRequest.getId())){
-                return ResponseEntity.ok(ApiResponse.error("OPERATION_BUSY"));
+                throw new ApiException(ErrorCode.OPERATION_BUSY, "OPERATION_BUSY");
             }
             ModifyBookResponse modifyBookResponse = bookService.modifyBook(modifyBookRequest);
             return ResponseEntity.ok(ApiResponse.success(modifyBookResponse));
-        } catch (Exception ex) {
+        } catch (ApiException ex) {
             log.error(ex.getMessage());
-            return ResponseEntity.ok(ApiResponse.error(ex.getMessage()));
+            return ResponseEntity.ok(ApiResponse.error(ex.getErrorCode()));
         } finally {
             lockService.unlockBookId(modifyBookRequest.getId());
         }
@@ -56,12 +59,10 @@ public class BookController {
             return ResponseEntity.ok(ApiResponse.success(addBookResponse));
         } catch (DataIntegrityViolationException de) {
             log.error(de.getMessage());
-            return ResponseEntity.ok(ApiResponse.error("DUPLICATE_UNIQUE"));
-
-        } catch (Exception ex) {
-
-            log.error(ex.getMessage());
-            return ResponseEntity.ok(ApiResponse.error(ex.getMessage()));
+            return ResponseEntity.ok(ApiResponse.error(ErrorCode.DUPLICATE_UNIQUE));
+        }  catch (ApiException ae) {
+            log.error(ae.getMessage());
+            return ResponseEntity.ok(ApiResponse.error(ae.getErrorCode()));
         }
     }
 
