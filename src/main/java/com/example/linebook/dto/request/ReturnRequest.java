@@ -7,6 +7,6 @@ import javax.validation.constraints.Positive;
 @Data
 public class ReturnRequest {
 
-    @Positive(message = "quantity must be positive")
+    @Positive(message = "loanId must be positive")
     private Long loanId;
 }

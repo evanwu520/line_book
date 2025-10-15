@@ -11,14 +11,15 @@ import com.example.linebook.exception.ApiException;
 import com.example.linebook.exception.ErrorCode;
 import com.example.linebook.service.BookService;
 import com.example.linebook.service.LockService;
-import io.swagger.annotations.Api;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
+import javax.validation.Valid;
 import java.util.Optional;
 
 @Slf4j
@@ -34,14 +35,14 @@ public class BookController {
 
     @PutMapping
     @PreAuthorize("hasAuthority('MANAGE_BOOKS')")
-    public ResponseEntity<ApiResponse<ModifyBookResponse>> modifyBook(@RequestHeader("Authorization") String token, @RequestBody ModifyBookRequest modifyBookRequest) {
+    public ResponseEntity<ApiResponse<ModifyBookResponse>> modifyBook(@Valid @RequestHeader("Authorization") String token, @RequestBody ModifyBookRequest modifyBookRequest) {
 
         try {
             if (!lockService.tryBookLockById(modifyBookRequest.getId())){
                 throw new ApiException(ErrorCode.OPERATION_BUSY, "OPERATION_BUSY");
             }
             ModifyBookResponse modifyBookResponse = bookService.modifyBook(modifyBookRequest);
-            return ResponseEntity.ok(ApiResponse.success(modifyBookResponse));
+            return new ResponseEntity<>(ApiResponse.success(modifyBookResponse), HttpStatus.CREATED);
         } catch (ApiException ex) {
             log.error(ex.getMessage());
             return ResponseEntity.ok(ApiResponse.error(ex.getErrorCode()));
@@ -52,7 +53,7 @@ public class BookController {
 
     @PostMapping
     @PreAuthorize("hasAuthority('MANAGE_BOOKS')")
-    public ResponseEntity<ApiResponse<AddBookResponse>> addBook(@RequestHeader("Authorization") String token, @RequestBody AddBookRequest addBookRequest) {
+    public ResponseEntity<ApiResponse<AddBookResponse>> addBook(@Valid @RequestHeader("Authorization") String token, @RequestBody AddBookRequest addBookRequest) {
 
         try {
             AddBookResponse addBookResponse = bookService.addBook(addBookRequest);

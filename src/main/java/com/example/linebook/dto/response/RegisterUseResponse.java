@@ -10,6 +10,5 @@ public class RegisterUseResponse {
 
     private Long userId;
     private String username;
-    private String token;
     private Set<Role> roles;
 }

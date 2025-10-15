@@ -16,6 +16,8 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import springfox.documentation.annotations.ApiIgnore;
 
+import javax.validation.Valid;
+
 @Slf4j
 @RestController
 @RequestMapping("/api/loans")
@@ -43,8 +45,8 @@ public class LoanController {
     @PostMapping("/return")
     @PreAuthorize("hasAuthority('BORROW_BOOKS')")
     public ResponseEntity<ApiResponse<ReturnBookResponse>> returnBook(@ApiIgnore @RequestAttribute("userId") Long userId,
-                                                         @RequestHeader("Authorization") String token,
-                                                         @RequestBody ReturnRequest returnRequest) {
+                                                                      @RequestHeader("Authorization") String token,
+                                                                      @Valid @RequestBody ReturnRequest returnRequest) {
 
         try {
             return ResponseEntity.ok(ApiResponse.success(loanService.returnBook(returnRequest)));

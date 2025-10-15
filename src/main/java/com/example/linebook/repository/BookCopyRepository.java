@@ -17,12 +17,11 @@ public interface BookCopyRepository extends JpaRepository<BookCopy, Long> {
 //    @Query("SELECT b.library.id, b.library.name, count(b) FROM BookCopy b WHERE b.book = ?1 AND b.status = ?2 GROUP BY b.library.name")
 //    List<Object[]> countAvailableCopiesByLibrary(Book book, BookCopyStatus status);
 
-    @Query("SELECT NEW com.example.linebook.entity.custom.LibraryBookCount(bc.library, COUNT(bc.id)) " +
+    @Query("SELECT NEW com.example.linebook.entity.custom.LibraryBookCount(bc.library, bc.status, COUNT(bc.id)) " +
             "FROM BookCopy bc JOIN bc.library l " +
-            "WHERE bc.book = :book AND bc.status = :status " +
-            "GROUP BY l.id")
-    List<LibraryBookCount> countAvailableCopiesByLibrary(@Param("book") Book book,
-                                                         @Param("status") BookCopyStatus status);
+            "WHERE bc.book = :book " +
+            "GROUP BY l.id, bc.status")
+    List<LibraryBookCount> countCopiesByLibrary(@Param("book") Book book);
 
     List<BookCopy> findByBookAndStatusAndLibrary(Book book, BookCopyStatus status, Library library);
 }

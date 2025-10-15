@@ -5,6 +5,7 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 
 import java.util.List;
+import java.util.Map;
 
 @Data
 public class BookSearchResponse {
@@ -20,15 +21,17 @@ public class BookSearchResponse {
         private String author;
         private int publicationYear;
         private BookType type;
-        private List<LibraryBookCount> availableCopies;
+        private List<LibraryBookCount> bookCopies;
     }
     @Data
     @AllArgsConstructor
     public static class LibraryBookCount {
         private Long libraryId;
         private String name;
-        private Long count;
+        private Map<String, Long> statusCount;
     }
+
+
 }
 
 
