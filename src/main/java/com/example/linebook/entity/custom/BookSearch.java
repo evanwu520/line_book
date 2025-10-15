@@ -11,6 +11,6 @@ import java.util.List;
 public class BookSearch {
 
     private Book book;
-    private List<LibraryBookCount> availableCopies;
+    private List<LibraryBookCount> bookCopies;
 
 }

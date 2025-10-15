@@ -18,6 +18,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import javax.validation.Valid;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -31,7 +32,7 @@ public class AuthController {
     UserService userService;
 
     @PostMapping("/register")
-    public ResponseEntity<ApiResponse<RegisterUseResponse>> registerUser(@RequestBody UserRegistrationRequest registrationRequest) {
+    public ResponseEntity<ApiResponse<RegisterUseResponse>> registerUser(@Valid @RequestBody UserRegistrationRequest registrationRequest) {
 
         try {
             RegisterUseResponse registerUseResponse = userService.registerNewUser(registrationRequest);
@@ -46,7 +47,7 @@ public class AuthController {
     }
 
     @PostMapping("/login")
-    public ResponseEntity<ApiResponse<LoginResponse>> login(@RequestBody LoginRequest loginRequest) {
+    public ResponseEntity<ApiResponse<LoginResponse>> login(@Valid @RequestBody LoginRequest loginRequest) {
 
         try {
             LoginResponse loginResponse  = userService.login(loginRequest.getUsername(), loginRequest.getPassword());
