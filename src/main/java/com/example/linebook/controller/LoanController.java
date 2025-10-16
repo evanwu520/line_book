@@ -9,6 +9,7 @@ import com.example.linebook.dto.response.ReturnBookResponse;
 import com.example.linebook.exception.ApiException;
 import com.example.linebook.service.LoanService;
 import com.example.linebook.service.LockService;
+import io.swagger.annotations.ApiResponses;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -29,6 +30,13 @@ public class LoanController {
     @Autowired
     LockService lockService;
 
+    @ApiResponses({
+            @io.swagger.annotations.ApiResponse(code = 200, message = ""),
+            @io.swagger.annotations.ApiResponse(code = 400, message = ""),
+            @io.swagger.annotations.ApiResponse(code = 401, message = ""),
+            @io.swagger.annotations.ApiResponse(code = 403, message = ""),
+            @io.swagger.annotations.ApiResponse(code = 500, message = ""),
+    })
     @PostMapping("/borrow")
     @PreAuthorize("hasAuthority('BORROW_BOOKS')")
     public ResponseEntity<ApiResponse<BorrowBookResponse>> borrowBook(@ApiIgnore @RequestAttribute("userId") Long userId,
@@ -42,6 +50,13 @@ public class LoanController {
         }
     }
 
+    @ApiResponses({
+            @io.swagger.annotations.ApiResponse(code = 200, message = ""),
+            @io.swagger.annotations.ApiResponse(code = 400, message = ""),
+            @io.swagger.annotations.ApiResponse(code = 401, message = ""),
+            @io.swagger.annotations.ApiResponse(code = 403, message = ""),
+            @io.swagger.annotations.ApiResponse(code = 500, message = ""),
+    })
     @PostMapping("/return")
     @PreAuthorize("hasAuthority('BORROW_BOOKS')")
     public ResponseEntity<ApiResponse<ReturnBookResponse>> returnBook(@ApiIgnore @RequestAttribute("userId") Long userId,

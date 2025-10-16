@@ -11,6 +11,7 @@ import com.example.linebook.exception.ApiException;
 import com.example.linebook.exception.ErrorCode;
 import com.example.linebook.service.BookService;
 import com.example.linebook.service.LockService;
+import io.swagger.annotations.ApiResponses;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataIntegrityViolationException;
@@ -33,6 +34,15 @@ public class BookController {
     @Autowired
     LockService lockService;
 
+
+    @ApiResponses({
+            @io.swagger.annotations.ApiResponse(code = 200, message = ""),
+            @io.swagger.annotations.ApiResponse(code = 400, message = ""),
+            @io.swagger.annotations.ApiResponse(code = 401, message = ""),
+            @io.swagger.annotations.ApiResponse(code = 403, message = ""),
+            @io.swagger.annotations.ApiResponse(code = 409, message = ""),
+            @io.swagger.annotations.ApiResponse(code = 500, message = ""),
+    })
     @PutMapping
     @PreAuthorize("hasAuthority('MANAGE_BOOKS')")
     public ResponseEntity<ApiResponse<ModifyBookResponse>> modifyBook(@Valid @RequestHeader("Authorization") String token, @RequestBody ModifyBookRequest modifyBookRequest) {
@@ -45,28 +55,43 @@ public class BookController {
             return new ResponseEntity<>(ApiResponse.success(modifyBookResponse), HttpStatus.CREATED);
         } catch (ApiException ex) {
             log.error(ex.getMessage());
-            return ResponseEntity.ok(ApiResponse.error(ex.getErrorCode()));
+            return new ResponseEntity<>(ApiResponse.error(ErrorCode.DUPLICATE_UNIQUE), HttpStatus.CONFLICT);
         } finally {
             lockService.unlockBookId(modifyBookRequest.getId());
         }
     }
-
+    @ResponseStatus(HttpStatus.CREATED)
+    @ApiResponses({
+            @io.swagger.annotations.ApiResponse(code = 201, message = ""),
+            @io.swagger.annotations.ApiResponse(code = 400, message = ""),
+            @io.swagger.annotations.ApiResponse(code = 401, message = ""),
+            @io.swagger.annotations.ApiResponse(code = 403, message = ""),
+            @io.swagger.annotations.ApiResponse(code = 409, message = ""),
+            @io.swagger.annotations.ApiResponse(code = 500, message = ""),
+    })
     @PostMapping
     @PreAuthorize("hasAuthority('MANAGE_BOOKS')")
     public ResponseEntity<ApiResponse<AddBookResponse>> addBook(@Valid @RequestHeader("Authorization") String token, @RequestBody AddBookRequest addBookRequest) {
 
         try {
             AddBookResponse addBookResponse = bookService.addBook(addBookRequest);
-            return ResponseEntity.ok(ApiResponse.success(addBookResponse));
+            return new ResponseEntity<>(ApiResponse.success(addBookResponse), HttpStatus.CREATED);
         } catch (DataIntegrityViolationException de) {
             log.error(de.getMessage());
-            return ResponseEntity.ok(ApiResponse.error(ErrorCode.DUPLICATE_UNIQUE));
+            return new ResponseEntity<>(ApiResponse.error(ErrorCode.DUPLICATE_UNIQUE), HttpStatus.CONFLICT);
         }  catch (ApiException ae) {
             log.error(ae.getMessage());
             return ResponseEntity.ok(ApiResponse.error(ae.getErrorCode()));
         }
     }
 
+    @ApiResponses({
+            @io.swagger.annotations.ApiResponse(code = 200, message = ""),
+            @io.swagger.annotations.ApiResponse(code = 400, message = ""),
+            @io.swagger.annotations.ApiResponse(code = 401, message = ""),
+            @io.swagger.annotations.ApiResponse(code = 403, message = ""),
+            @io.swagger.annotations.ApiResponse(code = 500, message = ""),
+    })
     @GetMapping("/search")
     @PreAuthorize("hasAnyAuthority('BORROW_BOOKS','MANAGE_BOOKS')")
     public ResponseEntity<ApiResponse<BookSearchResponse>> searchBooks(@RequestHeader("Authorization") String token,
