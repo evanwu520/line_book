@@ -20,6 +20,15 @@
     - **Username**: `sa`  
     - **Password**: *(leave blank)*
 
+### Default Users
+
+- **LIBRARIAN (MANAGE_BOOKS):**  
+  - Username: `librarian`  
+  - Password: `librarian`
+- **MEMBER (BORROW_BOOKS):**  
+  - Username: `member`  
+  - Password: `member`
+
 ---
 
 ## API Endpoints Requiring Authentication
