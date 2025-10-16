@@ -1,7 +1,15 @@
-## Environment
-- **IDE**: IntelliJ
-- **Maven version**: 3.9.9
-- **Java version**: 8
+## **Introduction**
+
+This project is an **Online Library System** featuring two main functions.  
+The first allows **users** to borrow and return books, as well as perform advanced book searches.  
+The second enables **librarians** to manage the book inventory — including adding, updating, and maintaining book records.  
+The system is built with **Spring Boot** and secured using **Spring Security with JWT**, providing a robust and secure **RESTful API** backend.
+
+## **Environment**
+- **IDE:** IntelliJ IDEA  
+- **Build Tool:** Maven 3.9.9  
+- **Java Version:** 8  
+- **Spring Boot Version:** 2.3.1.RELEASE
 
 ---
 
