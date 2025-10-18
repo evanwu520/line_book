@@ -47,8 +47,12 @@ public class BookController {
     @PreAuthorize("hasAuthority('MANAGE_BOOKS')")
     public ResponseEntity<ApiResponse<ModifyBookResponse>> modifyBook(@Valid @RequestHeader("Authorization") String token, @RequestBody ModifyBookRequest modifyBookRequest) {
 
+        boolean isGetBookLockId = false;
         try {
-            if (!lockService.tryBookLockById(modifyBookRequest.getId())){
+
+            isGetBookLockId = lockService.tryBookLockById(modifyBookRequest.getId());
+
+            if (!isGetBookLockId) {
                 throw new ApiException(ErrorCode.OPERATION_BUSY, "OPERATION_BUSY");
             }
             ModifyBookResponse modifyBookResponse = bookService.modifyBook(modifyBookRequest);
@@ -57,7 +61,9 @@ public class BookController {
             log.error(ex.getMessage());
             return new ResponseEntity<>(ApiResponse.error(ErrorCode.DUPLICATE_UNIQUE), HttpStatus.CONFLICT);
         } finally {
-            lockService.unlockBookId(modifyBookRequest.getId());
+            if (isGetBookLockId) {
+                lockService.unlockBookId(modifyBookRequest.getId());
+            }
         }
     }
     @ResponseStatus(HttpStatus.CREATED)
